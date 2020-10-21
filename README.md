@@ -88,6 +88,67 @@ SELECT COUNT(longdate)
 FROM ubhsc
 WHERE longdate<'2017-11-25 00:00:00' or longdate >'2017-12-03 24:00:00';
 ```
+![异常值处理1](./image/异常值处理1.jpg)  
+```
+DELETE FROM ubhsmallcopy
+WHERE longdate<'2017-11-25 00:00:00' or longdate >'2017-12-03 24:00:00';
+```
+![异常值处理2](./image/异常值处理2.jpg)  
 
+### 7. 查看数据情况  
+```
+SELECT 
+COUNT(distinct user_id) AS 用户数,
+COUNT(distinct item_id) AS 商品数量,
+COUNT(distinct cate_id) AS 商品类型数量,
+SUM(case when behavior_type = 'pv' then 1 else 0 end) AS 浏览次数,
+SUM(case when behavior_type = 'fav' then 1 else 0 end) AS 收藏次数,
+SUM(case when behavior_type = 'cart' then 1 else 0 end) AS 加入购物车次数,
+SUM(case when behavior_type = 'buy' then 1 else 0 end) AS 购买次数,
+COUNT(longdate) AS 数据总量
+from ubhsc;
+```
+![数据情况](./image/数据情况.jpg)  
 
- 
+## 五. 数据分析  
+### （一）用户角度  
+#### 1. 总体运营分析  
+##### 1.1 用户流量分析
+###### ①总访问量PV、总访客数UV、平均访问量PV/UV  
+```
+SELECT COUNT(DISTINCT user_id) AS '总访客数UV',
+sum(case when behavior_type='pv' then 1 else 0 END) as '总访问量PV',
+sum(case when behavior_type='pv' then 1 else 0 END)/COUNT(DISTINCT user_id) as '人均访问次数'
+FROM ubhsc;
+```
+2017年11月25日至2017年12月3日，PV为9739，UV为876539，人均访问次数为90次  
+![pvuv](./image/pvuv.jpg)  
+
+###### ②PV、UV、平均访问量与日期/时间的关系  
+（备注：可使用处理过后的源数据在tableau中直接进行可视化，以下SQL可提取对应数据）  
+```
+#以日期为维度
+SELECT Date,
+COUNT(DISTINCT user_ID) AS '总访客数UV',
+sum(case when behavior_type='pv' then 1 else 0 END) as '总访问量PV',
+sum(case when behavior_type='pv' then 1 else 0 END)/COUNT(DISTINCT user_id) as '人均访问次数'
+FROM ubhsc
+GROUP BY Date
+ORDER BY Date;
+
+#以（天）小时为维度（备注，以小时为维度，可计算日均UV、PV）
+SELECT `hour`,
+COUNT(DISTINCT User_ID) AS '总访客数UV',
+sum(case when behavior_type='pv' then 1 else 0 END) as '总访问量PV',
+sum(case when behavior_type='pv' then 1 else 0 END)/COUNT(DISTINCT user_id) as '人均访问次数'
+FROM ubhsc
+GROUP BY `hour`
+ORDER BY `hour`;
+```
+使用tableau连接mysql数据库，进行可视化，结果显示在2017/11/25-2017/12/3期间，PV与UV随日期的变化趋势相似，11/25-12/1保持稳定的水平，12/2开始较为明显的增长，增长率约为33%，而人均访问次数则相对平稳，自12/1有缓慢下降趋势。  
+![pvuv日期关系](./image/pvuv日期关系.jpg)  
+以一天为维度，10点-18点之间，UV、PV均无较大波动（UV在6000上下波动，PV在45000上下波动），18点-23点，UV、PV出现明显增长，PV波动明显（用户频繁访问）  
+![pvuv时间关系](./image/pvuv时间关系.jpg)  
+
+##### 1.2 总体销售情况  
+由于数据源中未提供金额字段，此处仅分析成交量变化  
