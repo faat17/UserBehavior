@@ -7,11 +7,13 @@
 2. 数据来源与理解  
  数据来源：[阿里巴巴天池](https://tianchi.aliyun.com/dataset/dataDetail?dataId=649&userId=1)  
  数据集介绍：  
+ 
   文件名称  | 说明  | 包含特征  
   ---- | ----- | ------  
   UserBehavior.csv  | 包含所有的用户行为数据 | 用户ID，商品ID，商品类目ID，行为类型，时间戳  
  
-  字段说明  
+ 字段说明：  
+ 
   列名称  | 说明  
   ---- | ----- | ------  
   用户ID  | 整数类型，序列化后的用户ID  
